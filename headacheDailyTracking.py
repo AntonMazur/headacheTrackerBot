@@ -172,17 +172,12 @@ async def ask_comments(message: Message):
 @router.message(Command("reset"))
 async def reset_progress(message: Message):
     user_id = message.from_user.id
-    if user_id in user_data:
-        del user_data[user_id]
-        await message.answer("Your progress has been reset.")
-    else:
-        await message.answer("No active headache tracking session to reset.")
+    delete_user_data(user_id)
     await main_menu(message.chat.id)
 
 async def delete_user_data(user_id: int):
     if user_id in user_data:
         del user_data[user_id]
-    await main_menu(user_id)
 
 @router.message()
 async def handle_text_input(message: Message):
@@ -417,6 +412,11 @@ async def export_pdf(callback: CallbackQuery, period: str):
     await bot.send_document(callback.from_user.id, input_file)
     os.remove(filename)
     await callback.answer()
+
+    # Reset data and call main menu
+    user_id = callback.from_user.id
+    await delete_user_data(user_id)
+    await main_menu(callback.message.chat.id)
 
 async def main():
     await dp.start_polling(bot)
