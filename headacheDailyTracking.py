@@ -69,13 +69,13 @@ async def start_recording(callback: CallbackQuery):
 @router.callback_query(F.data == "day_today")
 async def set_day_today(callback: CallbackQuery):
     user_id = callback.from_user.id
-    user_data[user_id]['date'] = datetime.now().strftime("%Y-%m-%d")
+    user_data[user_id]['date'] = datetime.now(user_timezone).strftime("%Y-%m-%d")
     await ask_start_time(callback.message)
 
 @router.callback_query(F.data == "day_yesterday")
 async def set_day_yesterday(callback: CallbackQuery):
     user_id = callback.from_user.id
-    yesterday = datetime.now() - timedelta(days=1)
+    yesterday = datetime.now(user_timezone) - timedelta(days=1)
     user_data[user_id]['date'] = yesterday.strftime("%Y-%m-%d")
     await ask_start_time(callback.message)
 
@@ -396,7 +396,7 @@ def split_text_into_lines(text, max_width, pdf):
     return lines
 
 async def export_pdf(callback: CallbackQuery, period: str):
-    today = datetime.now()
+    today = datetime.now(user_timezone)
     if period == "week":
         start_date = today - timedelta(weeks=1)
     elif period == "month":
@@ -405,7 +405,7 @@ async def export_pdf(callback: CallbackQuery, period: str):
     start_date_str = start_date.strftime("%Y-%m-%d")
 
     cursor.execute(
-        "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= ?",
+        "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= ? ORDER BY date DESC",
         (start_date_str,)
     )
     records = cursor.fetchall()
