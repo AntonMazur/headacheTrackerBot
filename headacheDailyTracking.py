@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sqlite3
+import pytz
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery, FSInputFile
@@ -33,6 +34,12 @@ conn.commit()
 
 # Store user input before saving to database
 user_data = {}
+
+# User's time zone (this would be dynamic or set by the user)
+user_timezone_str = 'Europe/Kiev'  # Example time zone
+
+# Get the timezone object using pytz
+user_timezone = pytz.timezone(user_timezone_str)
 
 # Main Menu
 async def main_menu(chat_id: int):
@@ -82,7 +89,7 @@ async def ask_start_time(message: Message):
 @router.callback_query(F.data == "start_time_now")
 async def save_start_time_now(callback: CallbackQuery):
     user_id = callback.from_user.id
-    user_data[user_id]['start_time'] = datetime.now().strftime("%H:%M")
+    user_data[user_id]['start_time'] = datetime.now(user_timezone).strftime("%H:%M")
     await ask_medication(callback.message)
 
 @router.callback_query(F.data == "start_time_specify")
@@ -154,7 +161,7 @@ async def ask_stop_time(message: Message):
 @router.callback_query(F.data == "stop_time_now")
 async def save_stop_time_now(callback: CallbackQuery):
     user_id = callback.from_user.id
-    user_data[user_id]['stop_time'] = datetime.now().strftime("%H:%M")
+    user_data[user_id]['stop_time'] = datetime.now(user_timezone).strftime("%H:%M")
     user_data[user_id]['waiting_for_comments'] = True
     await ask_comments(callback.message)
 
