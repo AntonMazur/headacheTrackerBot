@@ -2,6 +2,7 @@ import asyncio
 import os
 import sqlite3
 import pytz
+import mysql.connector
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery, FSInputFile
@@ -13,6 +14,12 @@ from dotenv import load_dotenv
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+# Database connection
+DB_HOST = os.getenv("mysql.railway.internal")
+DB_USER = os.getenv("root")
+DB_PASSWORD = os.getenv("XbmoulmsONJSjXMxsMtufgWnXUXtcmNC")
+DB_NAME = os.getenv("railway")
+
 # Initialize bot and router
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -20,17 +27,47 @@ router = Router()
 dp.include_router(router)
 
 # Database setup
-conn = sqlite3.connect("headache_logs.db")
-cursor = conn.cursor()
-cursor.execute('''CREATE TABLE IF NOT EXISTS headaches (
-                    id INTEGER PRIMARY KEY, 
-                    date TEXT, 
-                    start_time TEXT, 
-                    stop_time TEXT, 
-                    medications TEXT, 
-                    rating INTEGER, 
-                    comments TEXT)''')
-conn.commit()
+# Connect to MySQL
+# conn = mysql.connector.connect(
+#     host=DB_HOST,
+#     user=DB_USER,
+#     password=DB_PASSWORD,
+#     database=DB_NAME
+# )
+
+try:
+    conn = mysql.connector.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME')
+    )
+    cursor = conn.cursor()
+    # Create table if not exists
+    cursor.execute('''CREATE TABLE IF NOT EXISTS headaches (
+                        id INT AUTO_INCREMENT PRIMARY KEY, 
+                        user_id BIGINT NOT NULL,
+                        date DATE, 
+                        start_time TIME, 
+                        stop_time TIME, 
+                        medications TEXT, 
+                        rating INT, 
+                        comments TEXT)''')
+    conn.commit()
+except mysql.connector.Error as err:
+    print(f"Error: {err}")
+
+# conn = sqlite3.connect("headache_logs.db")
+# cursor = conn.cursor()
+# cursor.execute('''CREATE TABLE IF NOT EXISTS headaches (
+#                     id INTEGER PRIMARY KEY,
+#                     date TEXT,
+#                     start_time TEXT,
+#                     stop_time TEXT,
+#                     medications TEXT,
+#                     rating INTEGER,
+#                     comments TEXT)''')
+# conn.commit()
 
 # Store user input before saving to database
 user_data = {}
@@ -250,18 +287,33 @@ async def save_to_db(message: Message):
     data = user_data.pop(user_id, None)
 
     if data and "stop_time" in data:  # Only save if stop time is provided
-        # medications = "; ".join([f"{med['name']} at {med['time']}" for med in data['medications']])
         medications = "; ".join([
             f"{med['name']} at {med['time']}" for med in data['medications']
         ])
         if not medications:
             medications = "No medications taken"
 
-        cursor.execute(
-            "INSERT INTO headaches (date, start_time, stop_time, medications, rating, comments) VALUES (?, ?, ?, ?, ?, ?)",
-            (
-            data['date'], data['start_time'], data['stop_time'], medications, data['rating'], data.get('comments', '')))
+        # cursor.execute(
+        #     "INSERT INTO headaches (date, start_time, stop_time, medications, rating, comments) VALUES (?, ?, ?, ?, ?, ?)",
+        #     (
+        #     data['date'], data['start_time'], data['stop_time'], medications, data['rating'], data.get('comments', '')))
+        # conn.commit()
+        query = '''INSERT INTO headaches (user_id, date, start_time, stop_time, medications, rating, comments)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)'''
+
+        values = (
+            user_id,
+            data["date"],
+            data["start_time"],
+            data["stop_time"],
+            medications,
+            data["rating"],
+            data.get("comments", "")
+        )
+
+        cursor.execute(query, values)
         conn.commit()
+
         await message.answer("Your headache record has been saved.")
     else:
         await message.answer("Error saving data. Please make sure you entered all required details.")
