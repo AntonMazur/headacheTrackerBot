@@ -336,12 +336,7 @@ async def generate_headache_report(records, period):
 
     pdf = FPDF()
     font_path = os.path.join(os.path.dirname(__file__), "fonts/DejaVuSans.ttf")
-
-    # Ensure the correct parameters are used:
-    # First parameter is the font family name, second is the style ('' for normal), third is the font file path, and uni=True to support Unicode
     pdf.add_font("DejaVuSans", "", font_path, uni=True)
-
-    # Set font to use "DejaVuSans"
     pdf.set_font("DejaVuSans", "", 12)  # Use normal style, or "B" for bold, etc.
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -374,8 +369,10 @@ async def generate_headache_report(records, period):
 def calculate_column_widths(records, headers, pdf):
     """Calculate the maximum column widths based on headers and data."""
     temp_pdf = FPDF()
-    temp_pdf.set_font("Arial", size=12)
-
+    font_path = os.path.join(os.path.dirname(__file__), "fonts/DejaVuSans.ttf")
+    temp_pdf.add_font("DejaVuSans", "", font_path, uni=True)
+    temp_pdf.set_font("DejaVuSans", "", 12)  # Use normal style, or "B" for bold, etc.
+    
     max_widths = {header: temp_pdf.get_string_width(header) + 6 for header in headers}
 
     for record in records:
