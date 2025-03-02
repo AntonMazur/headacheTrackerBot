@@ -337,7 +337,7 @@ async def generate_headache_report(records, period):
     # Get the current directory of the script
     current_dir = os.path.dirname(os.path.realpath(__file__))
     # Path to the custom font (relative to the script)
-    font_path = os.path.join(current_dir, 'Fonts', 'DejaVuSans.ttf')
+    font_path = os.path.join(current_dir, 'fonts', 'DejaVuSans.ttf')
 
     pdf = FPDF()
     # Add the custom font
