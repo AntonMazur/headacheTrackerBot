@@ -372,7 +372,7 @@ def calculate_column_widths(records, headers, pdf):
     font_path = os.path.join(os.path.dirname(__file__), "fonts/DejaVuSans.ttf")
     temp_pdf.add_font("DejaVuSans", "", font_path, uni=True)
     temp_pdf.set_font("DejaVuSans", "", 12)  # Use normal style, or "B" for bold, etc.
-    
+
     max_widths = {header: temp_pdf.get_string_width(header) + 6 for header in headers}
 
     for record in records:
@@ -443,6 +443,7 @@ def split_text_into_lines(text, max_width, pdf):
     return lines
 
 async def export_pdf(callback: CallbackQuery, period: str):
+    user_id = callback.from_user.id
     today = datetime.now(user_timezone)
     if period == "week":
         start_date = today - timedelta(weeks=1)
@@ -451,8 +452,13 @@ async def export_pdf(callback: CallbackQuery, period: str):
 
     start_date_str = start_date.strftime("%Y-%m-%d")
     cursor.execute(
-        "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= %s ORDER BY date ASC",
-        (start_date_str,)
+        """
+        SELECT date, start_time, stop_time, medications, rating, comments 
+        FROM headaches 
+        WHERE date >= %s AND user_id = %s 
+        ORDER BY date ASC
+        """,
+        (start_date_str, user_id)
     )
     records = cursor.fetchall()
     if not records:
