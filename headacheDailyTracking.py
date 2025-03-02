@@ -331,21 +331,13 @@ async def export_month(callback: CallbackQuery):
     await export_pdf(callback, period="month")
     await callback.answer()
 
-
-from fpdf import FPDF
-from datetime import datetime, timedelta
-import os
-
-
-def sanitize_text(text):
-    """Sanitize text to remove or replace unsupported Unicode characters."""
-    return ''.join([char if ord(char) < 256 else '?' for char in text])  # Replaces unsupported chars with '?'
-
 async def generate_headache_report(records, period):
     """Generates a PDF headache report with dynamic column widths and row heights."""
 
     pdf = FPDF()
-    pdf.set_font('Arial', '', 12)
+    font_path = os.path.join(os.path.dirname(__file__), "fonts/DejaVuSans.ttf")
+    pdf.add_font("DejaVuSans.ttf", font_path, uni=True)
+    pdf.set_font("DejaVuSans.ttf", "B", 12)
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
@@ -362,7 +354,7 @@ async def generate_headache_report(records, period):
 
     # Draw table headers
     for header in headers:
-        pdf.cell(max_widths[header], 10, sanitize_text(header), border=1, align='C')  # Sanitize header text
+        pdf.cell(max_widths[header], 10, header, border=1, align='C')
     pdf.ln()
 
     # Draw table rows
@@ -379,13 +371,12 @@ def calculate_column_widths(records, headers, pdf):
     temp_pdf = FPDF()
     temp_pdf.set_font("Arial", size=12)
 
-    max_widths = {header: temp_pdf.get_string_width(sanitize_text(header)) + 6 for header in
-                  headers}  # Sanitize headers
+    max_widths = {header: temp_pdf.get_string_width(header) + 6 for header in headers}
 
     for record in records:
         for header, value in zip(headers[1:], record):  # Excluding the index column
             if value is not None:
-                text = sanitize_text(str(value))  # Sanitize text
+                text = str(value)
                 if header in ["Medications", "Comments"]:
                     # Simulate multi_cell line wrapping
                     lines = split_text_into_lines(text, max_widths[header] - 4, temp_pdf)
@@ -396,7 +387,6 @@ def calculate_column_widths(records, headers, pdf):
                 max_widths[header] = max(max_widths[header], width)
 
     return max_widths
-
 
 def draw_table_row(pdf, idx, record, headers, max_widths):
     """Draws a single row in the table, adjusting for multiline text fields."""
@@ -411,7 +401,7 @@ def draw_table_row(pdf, idx, record, headers, max_widths):
     # Other columns
     for header, value in zip(headers[1:], record):  # Skip index column
         x_position = pdf.get_x()
-        text = sanitize_text(str(value)) if value is not None else ""
+        text = str(value) if value is not None else ""
 
         if header in ["Medications", "Comments"]:
             # For Medications and Comments, use multi_cell for dynamic text wrapping
@@ -422,7 +412,6 @@ def draw_table_row(pdf, idx, record, headers, max_widths):
 
     pdf.ln(row_height)
 
-
 def calculate_row_height(pdf, record, headers, max_widths):
     """Determines the required row height based on multiline text fields."""
     line_counts = [
@@ -431,7 +420,6 @@ def calculate_row_height(pdf, record, headers, max_widths):
         for header, value in zip(headers[1:], record)
     ]
     return max(line_counts) * 5  # 5 is the line height
-
 
 def split_text_into_lines(text, max_width, pdf):
     """Splits text into lines based on the max width for a column."""
@@ -451,7 +439,6 @@ def split_text_into_lines(text, max_width, pdf):
         lines.append(current_line)
 
     return lines
-
 
 async def export_pdf(callback: CallbackQuery, period: str):
     today = datetime.now(user_timezone)
@@ -481,142 +468,6 @@ async def export_pdf(callback: CallbackQuery, period: str):
     user_id = callback.from_user.id
     await delete_user_data(user_id)
     await main_menu(callback.message.chat.id)
-
-# async def generate_headache_report(records, period):
-#     """Generates a PDF headache report with dynamic column widths and row heights."""
-#
-#     pdf = FPDF()
-#     pdf.set_font('Arial', '', 12)
-#     pdf.set_auto_page_break(auto=True, margin=15)
-#     pdf.add_page()
-#
-#     # Title
-#     title = f"Headache Report (Last {period.capitalize()})"
-#     pdf.cell(200, 10, title, ln=True, align='C')
-#     pdf.ln(10)
-#
-#     # Headers
-#     headers = ["#", "Date", "Start Time", "Stop Time", "Medications", "Rating", "Comments"]
-#
-#     # Calculate max column widths
-#     max_widths = calculate_column_widths(records, headers, pdf)
-#
-#     # Draw table headers
-#     for header in headers:
-#         pdf.cell(max_widths[header], 10, header, border=1, align='C')
-#     pdf.ln()
-#
-#     # Draw table rows
-#     for idx, record in enumerate(records, start=1):
-#         draw_table_row(pdf, idx, record, headers, max_widths)
-#
-#     filename = "headache_report.pdf"
-#     pdf.output(filename)
-#     return filename
-#
-#
-# def calculate_column_widths(records, headers, pdf):
-#     """Calculate the maximum column widths based on headers and data."""
-#     temp_pdf = FPDF()
-#     temp_pdf.set_font("Arial", size=12)
-#
-#     max_widths = {header: temp_pdf.get_string_width(header) + 6 for header in headers}
-#
-#     for record in records:
-#         for header, value in zip(headers[1:], record):  # Excluding the index column
-#             if value is not None:
-#                 text = str(value)
-#                 if header in ["Medications", "Comments"]:
-#                     # Simulate multi_cell line wrapping
-#                     lines = split_text_into_lines(text, max_widths[header] - 4, temp_pdf)
-#                     width = max(temp_pdf.get_string_width(line) + 4 for line in lines)
-#                 else:
-#                     width = temp_pdf.get_string_width(text) + 4
-#
-#                 max_widths[header] = max(max_widths[header], width)
-#
-#     return max_widths
-#
-# def draw_table_row(pdf, idx, record, headers, max_widths):
-#     """Draws a single row in the table, adjusting for multiline text fields."""
-#     y_start = pdf.get_y()
-#
-#     # Determine row height dynamically
-#     row_height = max(10, calculate_row_height(pdf, record, headers, max_widths))
-#
-#     # Index column
-#     pdf.cell(max_widths["#"], row_height, str(idx), border=1, align='C')
-#
-#     # Other columns
-#     for header, value in zip(headers[1:], record):  # Skip index column
-#         x_position = pdf.get_x()
-#         text = str(value) if value is not None else ""
-#
-#         if header in ["Medications", "Comments"]:
-#             # For Medications and Comments, use multi_cell for dynamic text wrapping
-#             pdf.multi_cell(max_widths[header], 5, text, border=1, align='L')
-#             pdf.set_xy(x_position + max_widths[header], y_start)  # Reset position
-#         else:
-#             pdf.cell(max_widths[header], row_height, text, border=1, align='C')
-#
-#     pdf.ln(row_height)
-#
-# def calculate_row_height(pdf, record, headers, max_widths):
-#     """Determines the required row height based on multiline text fields."""
-#     line_counts = [
-#         len(split_text_into_lines(str(value), max_widths[header] - 4, pdf))
-#         if header in ["Medications", "Comments"] and isinstance(value, str) else 1
-#         for header, value in zip(headers[1:], record)
-#     ]
-#     return max(line_counts) * 5  # 5 is the line height
-#
-# def split_text_into_lines(text, max_width, pdf):
-#     """Splits text into lines based on the max width for a column."""
-#     words = text.split()
-#     lines = []
-#     current_line = ""
-#
-#     for word in words:
-#         test_line = f"{current_line} {word}".strip()
-#         if pdf.get_string_width(test_line) > max_width:
-#             lines.append(current_line)
-#             current_line = word
-#         else:
-#             current_line = test_line
-#
-#     if current_line:
-#         lines.append(current_line)
-#
-#     return lines
-#
-# async def export_pdf(callback: CallbackQuery, period: str):
-#     today = datetime.now(user_timezone)
-#     if period == "week":
-#         start_date = today - timedelta(weeks=1)
-#     elif period == "month":
-#         start_date = today - timedelta(days=30)
-#
-#     start_date_str = start_date.strftime("%Y-%m-%d")
-#     cursor.execute(
-#         "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= %s ORDER BY date ASC",
-#         (start_date_str,)
-#     )
-#     records = cursor.fetchall()
-#     if not records:
-#         await bot.send_message(callback.from_user.id, f"No records for the last {period}.")
-#         return
-#
-#     filename = await generate_headache_report(records, period)
-#
-#     input_file = FSInputFile(filename, filename=filename)
-#     await bot.send_document(callback.from_user.id, input_file)
-#     os.remove(filename)
-#     await callback.answer()
-#
-#     # Reset data and call main menu
-#     user_id = callback.from_user.id
-#     await delete_user_data(user_id)
-#     await main_menu(callback.message.chat.id)
 
 async def main():
     await dp.start_polling(bot)
