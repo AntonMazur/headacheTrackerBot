@@ -1,6 +1,6 @@
 import asyncio
 import os
-import sqlite3
+# import sqlite3
 import pytz
 import mysql.connector
 from datetime import datetime, timedelta
@@ -15,10 +15,10 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # Database connection
-DB_HOST = os.getenv("mysql.railway.internal")
-DB_USER = os.getenv("root")
-DB_PASSWORD = os.getenv("XbmoulmsONJSjXMxsMtufgWnXUXtcmNC")
-DB_NAME = os.getenv("railway")
+DB_HOST = os.getenv("DB_HOST")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_NAME = os.getenv("DB_NAME")
 
 # Initialize bot and router
 bot = Bot(token=BOT_TOKEN)
@@ -27,14 +27,6 @@ router = Router()
 dp.include_router(router)
 
 # Database setup
-# Connect to MySQL
-# conn = mysql.connector.connect(
-#     host=DB_HOST,
-#     user=DB_USER,
-#     password=DB_PASSWORD,
-#     database=DB_NAME
-# )
-
 try:
     conn = mysql.connector.connect(
         host=os.getenv('DB_HOST'),
