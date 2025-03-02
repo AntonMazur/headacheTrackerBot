@@ -290,14 +290,9 @@ async def export_month(callback: CallbackQuery):
 async def generate_headache_report(records, period):
     """Generates a PDF headache report with dynamic column widths and row heights."""
 
-    # pdf = FPDF()
-    # pdf.set_auto_page_break(auto=True, margin=15)
-    # pdf.add_page()
-    # pdf.set_font("Arial", size=12)
     pdf = FPDF()
-    pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)  # register the font
-    pdf.set_font('DejaVu', size=12)  # set the font
-    pdf.set_auarto_page_break(auto=True, mgin=15)
+    pdf.set_font("Helvetica", size=12)  # Use default Helvetica font
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
     # Title
