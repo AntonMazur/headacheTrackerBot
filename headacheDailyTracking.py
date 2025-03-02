@@ -448,8 +448,13 @@ async def export_pdf(callback: CallbackQuery, period: str):
 
     start_date_str = start_date.strftime("%Y-%m-%d")
 
+    # cursor.execute(
+    #     "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= ? ORDER BY date ASC",
+    #     (start_date_str,)
+    # )
+    # records = cursor.fetchall()
     cursor.execute(
-        "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= ? ORDER BY date ASC",
+        "SELECT date, start_time, stop_time, medications, rating, comments FROM headaches WHERE date >= %s ORDER BY date ASC",
         (start_date_str,)
     )
     records = cursor.fetchall()
