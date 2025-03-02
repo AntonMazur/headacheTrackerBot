@@ -334,8 +334,16 @@ async def export_month(callback: CallbackQuery):
 async def generate_headache_report(records, period):
     """Generates a PDF headache report with dynamic column widths and row heights."""
 
+    # Get the current directory of the script
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    # Path to the custom font (relative to the script)
+    font_path = os.path.join(current_dir, 'Fonts', 'DejaVuSans.ttf')
+
     pdf = FPDF()
-    pdf.set_font("Helvetica", size=12)  # Use default Helvetica font
+    # Add the custom font
+    pdf.add_font('DejaVuSans', '', font_path, uni=True)
+    # Set the font to use the custom font
+    pdf.set_font('DejaVuSans', '', 12)
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
