@@ -336,8 +336,13 @@ async def generate_headache_report(records, period):
 
     pdf = FPDF()
     font_path = os.path.join(os.path.dirname(__file__), "fonts/DejaVuSans.ttf")
-    pdf.add_font("DejaVuSans", font_path, uni=True)
-    pdf.set_font("DejaVuSans", "B", 12)
+
+    # Ensure the correct parameters are used:
+    # First parameter is the font family name, second is the style ('' for normal), third is the font file path, and uni=True to support Unicode
+    pdf.add_font("DejaVuSans", "", font_path, uni=True)
+
+    # Set font to use "DejaVuSans"
+    pdf.set_font("DejaVuSans", "", 12)  # Use normal style, or "B" for bold, etc.
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
