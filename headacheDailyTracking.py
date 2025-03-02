@@ -1,6 +1,5 @@
 import asyncio
 import os
-# import sqlite3
 import pytz
 import mysql.connector
 from datetime import datetime, timedelta
@@ -48,18 +47,6 @@ try:
     conn.commit()
 except mysql.connector.Error as err:
     print(f"Error: {err}")
-
-# conn = sqlite3.connect("headache_logs.db")
-# cursor = conn.cursor()
-# cursor.execute('''CREATE TABLE IF NOT EXISTS headaches (
-#                     id INTEGER PRIMARY KEY,
-#                     date TEXT,
-#                     start_time TEXT,
-#                     stop_time TEXT,
-#                     medications TEXT,
-#                     rating INTEGER,
-#                     comments TEXT)''')
-# conn.commit()
 
 # Store user input before saving to database
 user_data = {}
@@ -284,12 +271,6 @@ async def save_to_db(message: Message):
         ])
         if not medications:
             medications = "No medications taken"
-
-        # cursor.execute(
-        #     "INSERT INTO headaches (date, start_time, stop_time, medications, rating, comments) VALUES (?, ?, ?, ?, ?, ?)",
-        #     (
-        #     data['date'], data['start_time'], data['stop_time'], medications, data['rating'], data.get('comments', '')))
-        # conn.commit()
         query = '''INSERT INTO headaches (user_id, date, start_time, stop_time, medications, rating, comments)
                        VALUES (%s, %s, %s, %s, %s, %s, %s)'''
 
