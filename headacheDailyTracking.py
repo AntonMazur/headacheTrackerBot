@@ -203,7 +203,7 @@ async def comments_handle(callback: CallbackQuery):
         await callback.message.answer("Please write your comment")
         await callback.answer()
     else:
-        user_data[user_id]['comments'] = "No comments"
+        user_data[user_id]['comments'] = 'No comments'
         await save_to_db(callback.message)
 
 @router.message(Command("reset"))
@@ -278,7 +278,7 @@ async def save_to_db(message: Message):
     user_id = message.from_user.id
     data = user_data.pop(user_id, None)
 
-    if data and "stop_time" in data:  # Only save if stop time is provided
+    if data and "stop_time" in data: # Only save if stop time is provided
         medications = "; ".join([
             f"{med['name']} at {med['time']}" for med in data['medications']
         ])
