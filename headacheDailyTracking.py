@@ -195,7 +195,7 @@ async def ask_comments(message: Message):
     ])
     await message.answer("Do you have any comments?", reply_markup=keyboard)
 
-@router.callback_query(F.data.startswith == "comments_")
+@router.callback_query(F.data.startswith("comments_"))
 async def comments_handle(callback: CallbackQuery):
     user_id = callback.from_user.id
     if callback.data == "comments_specify":
