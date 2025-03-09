@@ -203,7 +203,7 @@ async def comments_handle(callback: CallbackQuery):
         await callback.message.answer("Please write your comment")
         await callback.answer()
     else:
-        await save_to_db(callback.message)
+        await save_to_db(callback.message, user_id)
 
 @router.message(Command("reset"))
 async def reset_progress(message: Message):
@@ -273,8 +273,10 @@ async def handle_text_input(message: Message):
                 await message.answer("Invalid format. Please enter time as HH:MM (e.g., 14:30).")
 
 # Save to database
-async def save_to_db(message: Message):
-    user_id = message.from_user.id
+# async def save_to_db(message: Message):
+#     user_id = message.from_user.id
+async def save_to_db(message: Message, user_id: int = None):
+    user_id = user_id or message.from_user.id
     data = user_data.pop(user_id, None)
     print(data)
     if data and "stop_time" in data: # Only save if stop time is provided
