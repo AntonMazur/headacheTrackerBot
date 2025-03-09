@@ -203,7 +203,6 @@ async def comments_handle(callback: CallbackQuery):
         await callback.message.answer("Please write your comment")
         await callback.answer()
     else:
-        user_data[user_id]['comments'] = 'No comments'
         await save_to_db(callback.message)
 
 @router.message(Command("reset"))
