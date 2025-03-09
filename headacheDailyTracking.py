@@ -178,7 +178,6 @@ async def ask_stop_time(message: Message):
 async def save_stop_time_now(callback: CallbackQuery):
     user_id = callback.from_user.id
     user_data[user_id]['stop_time'] = datetime.now(user_timezone).strftime("%H:%M")
-    user_data[user_id]['waiting_for_comments'] = True
     await ask_comments(callback.message)
 
 @router.callback_query(F.data == "stop_time_specify")
@@ -190,12 +189,27 @@ async def ask_stop_time_specify(callback: CallbackQuery):
 
 # Ask for additional comments
 async def ask_comments(message: Message):
-    await message.answer("Any additional comments?")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Yes", callback_data="comments_specify")],
+        [InlineKeyboardButton(text="No", callback_data="comments_no")]
+    ])
+    await message.answer("Do you have any comments?", reply_markup=keyboard)
+
+@router.callback_query(F.data == "comments_")
+async def comments_handle(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    if callback.data == "comments_specify":
+        user_data[user_id]['waiting_for_comments'] = True
+        await callback.message.answer("Please write your comment")
+        await callback.answer()
+    else:
+        user_data[user_id]['comments'] = "No comments"
+        await save_to_db(callback.message)
 
 @router.message(Command("reset"))
 async def reset_progress(message: Message):
     user_id = message.from_user.id
-    delete_user_data(user_id)
+    await delete_user_data(user_id)
     await main_menu(message.chat.id)
 
 async def delete_user_data(user_id: int):
@@ -224,7 +238,6 @@ async def handle_text_input(message: Message):
                 datetime.strptime(message.text, "%H:%M")
                 user_data[user_id]['stop_time'] = message.text
                 user_data[user_id]['waiting_for_specific_stop_time'] = False
-                user_data[user_id]['waiting_for_comments'] = True
                 await ask_comments(message)
             except ValueError:
                 await message.answer("Invalid format. Please enter time as HH:MM (e.g., 14:30).")
