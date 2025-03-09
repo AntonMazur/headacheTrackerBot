@@ -203,7 +203,6 @@ async def comments_handle(callback: CallbackQuery):
         await callback.message.answer("Please write your comment")
         await callback.answer()
     else:
-        user_data[user_id]['comments'] = 'No comments'
         await save_to_db(callback.message, user_id)
 
 @router.message(Command("reset"))
@@ -274,12 +273,9 @@ async def handle_text_input(message: Message):
                 await message.answer("Invalid format. Please enter time as HH:MM (e.g., 14:30).")
 
 # Save to database
-# async def save_to_db(message: Message):
-#     user_id = message.from_user.id
 async def save_to_db(message: Message, user_id: int = None):
     user_id = user_id or message.from_user.id
     data = user_data.pop(user_id, None)
-    print(data)
     if data and "stop_time" in data: # Only save if stop time is provided
         medications = "; ".join([
             f"{med['name']} at {med['time']}" for med in data['medications']
@@ -296,7 +292,7 @@ async def save_to_db(message: Message, user_id: int = None):
             data["stop_time"],
             medications,
             data["rating"],
-            data.get("comments", "")
+            data.get("comments", "No comments")
         )
 
         cursor.execute(query, values)
