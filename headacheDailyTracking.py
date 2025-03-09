@@ -276,7 +276,7 @@ async def handle_text_input(message: Message):
 async def save_to_db(message: Message):
     user_id = message.from_user.id
     data = user_data.pop(user_id, None)
-
+    print(data)
     if data and "stop_time" in data: # Only save if stop time is provided
         medications = "; ".join([
             f"{med['name']} at {med['time']}" for med in data['medications']
